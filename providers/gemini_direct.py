@@ -37,9 +37,9 @@ class GeminiOAuth2Manager:
         self.refresh_token: Optional[str] = None
         self.expiry_date: Optional[int] = None
 
-        # OAuth2 Configuration (using environment variables or defaults)
-        self.client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "your-client-id-here")
-        self.client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "your-client-secret-here")
+        # OAuth2 Configuration (from GewoonJaap's implementation)
+        self.client_id = "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com"
+        self.client_secret = "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"
         self.refresh_url = "https://oauth2.googleapis.com/token"
         self.creds_path = Path.home() / ".gemini" / "oauth_creds.json"
 
