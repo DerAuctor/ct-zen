@@ -2,6 +2,7 @@
 
 from .base import ModelCapabilities, ModelProvider, ModelResponse
 from .gemini import GeminiModelProvider
+from .gemini_direct import GeminiDirectProvider
 from .openai_compatible import OpenAICompatibleProvider
 from .openai_provider import OpenAIModelProvider
 from .openrouter import OpenRouterProvider
@@ -13,6 +14,7 @@ __all__ = [
     "ModelCapabilities",
     "ModelProviderRegistry",
     "GeminiModelProvider",
+    "GeminiDirectProvider",
     "OpenAIModelProvider",
     "OpenAICompatibleProvider",
     "OpenRouterProvider",

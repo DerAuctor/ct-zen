@@ -22,7 +22,7 @@ Example:
 
 import logging
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from providers.base import ProviderType
 
@@ -46,21 +46,29 @@ class ModelRestrictionService:
         ProviderType.XAI: "XAI_ALLOWED_MODELS",
         ProviderType.OPENROUTER: "OPENROUTER_ALLOWED_MODELS",
         ProviderType.DIAL: "DIAL_ALLOWED_MODELS",
+        # New providers
+        "MISTRAL": "MISTRAL_MODELS",
+        "QWEN": "QWEN_MODELS",
+        "GEMINI_DIRECT": "GEMINI_MODELS",
     }
 
     def __init__(self):
         """Initialize the restriction service by loading from environment."""
-        self.restrictions: dict[ProviderType, set[str]] = {}
+        self.restrictions: dict = {}
         self._load_from_env()
 
     def _load_from_env(self) -> None:
         """Load restrictions from environment variables."""
+        # Load standard provider restrictions
         for provider_type, env_var in self.ENV_VARS.items():
             env_value = os.getenv(env_var)
 
+            # Get provider name for logging (handle both Enum and string types)
+            provider_name = provider_type.value if hasattr(provider_type, "value") else provider_type
+
             if env_value is None or env_value == "":
                 # Not set or empty - no restrictions (allow all models)
-                logger.debug(f"{env_var} not set or empty - all {provider_type.value} models allowed")
+                logger.debug(f"{env_var} not set or empty - all {provider_name} models allowed")
                 continue
 
             # Parse comma-separated list
@@ -72,12 +80,42 @@ class ModelRestrictionService:
 
             if models:
                 self.restrictions[provider_type] = models
-                logger.info(f"{provider_type.value} allowed models: {sorted(models)}")
+                logger.info(f"{provider_name} allowed models: {sorted(models)}")
             else:
                 # All entries were empty after cleaning - treat as no restrictions
-                logger.debug(f"{env_var} contains only whitespace - all {provider_type.value} models allowed")
+                logger.debug(f"{env_var} contains only whitespace - all {provider_name} models allowed")
 
-    def validate_against_known_models(self, provider_instances: dict[ProviderType, any]) -> None:
+        # Load additional provider restrictions (for new providers like MISTRAL, QWEN, GEMINI_DIRECT)
+        additional_providers = {
+            "MISTRAL": "MISTRAL_MODELS",
+            "QWEN": "QWEN_MODELS",
+            "GEMINI_DIRECT": "GEMINI_MODELS",
+        }
+
+        for provider_name, env_var in additional_providers.items():
+            env_value = os.getenv(env_var)
+
+            if env_value is None or env_value == "":
+                # Not set or empty - no restrictions (allow all models)
+                logger.debug(f"{env_var} not set or empty - all {provider_name} models allowed")
+                continue
+
+            # Parse comma-separated list
+            models = set()
+            for model in env_value.split(","):
+                cleaned = model.strip().lower()
+                if cleaned:
+                    models.add(cleaned)
+
+            if models:
+                # Use provider name as key for additional providers
+                self.restrictions[provider_name] = models
+                logger.info(f"{provider_name} allowed models: {sorted(models)}")
+            else:
+                # All entries were empty after cleaning - treat as no restrictions
+                logger.debug(f"{env_var} contains only whitespace - all {provider_name} models allowed")
+
+    def validate_against_known_models(self, provider_instances: dict[ProviderType, Any]) -> None:
         """
         Validate restrictions against known models from providers.
 
@@ -110,7 +148,9 @@ class ModelRestrictionService:
                         f"Please check for typos. Known models: {sorted(supported_models)}"
                     )
 
-    def is_allowed(self, provider_type: ProviderType, model_name: str, original_name: Optional[str] = None) -> bool:
+    def is_allowed(
+        self, provider_type: ProviderType | str, model_name: str, original_name: Optional[str] = None
+    ) -> bool:
         """
         Check if a model is allowed for a specific provider.
 
@@ -140,7 +180,7 @@ class ModelRestrictionService:
         # If any of the names is in the allowed set, it's allowed
         return any(name in allowed_set for name in names_to_check)
 
-    def get_allowed_models(self, provider_type: ProviderType) -> Optional[set[str]]:
+    def get_allowed_models(self, provider_type: ProviderType | str) -> Optional[set[str]]:
         """
         Get the set of allowed models for a provider.
 
@@ -180,7 +220,7 @@ class ModelRestrictionService:
 
         return [m for m in models if self.is_allowed(provider_type, m)]
 
-    def get_restriction_summary(self) -> dict[str, any]:
+    def get_restriction_summary(self) -> dict[str, Any]:
         """
         Get a summary of all restrictions for logging/debugging.
 
@@ -189,10 +229,12 @@ class ModelRestrictionService:
         """
         summary = {}
         for provider_type, allowed_set in self.restrictions.items():
+            # Get provider name for logging (handle both Enum and string types)
+            provider_name = provider_type.value if hasattr(provider_type, "value") else provider_type
             if allowed_set:
-                summary[provider_type.value] = sorted(allowed_set)
+                summary[provider_name] = sorted(allowed_set)
             else:
-                summary[provider_type.value] = "none (provider disabled)"
+                summary[provider_name] = "none (provider disabled)"
 
         return summary
 

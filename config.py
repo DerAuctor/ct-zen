@@ -30,6 +30,35 @@ DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "auto")
 # Auto mode detection - when DEFAULT_MODEL is "auto", Claude picks the model
 IS_AUTO_MODE = DEFAULT_MODEL.lower() == "auto"
 
+# Model selection configuration
+# Define which models are available for each provider
+# These can be overridden by environment variables to restrict model access
+
+# Gemini models - supports both API Key and OAuth2 authentication
+GEMINI_MODELS = os.getenv("GEMINI_MODELS", "gemini-2.5-flash").split(",")
+GEMINI_MODELS = [model.strip() for model in GEMINI_MODELS if model.strip()]
+
+# Qwen models - supports OAuth2 authentication
+QWEN_MODELS = os.getenv("QWEN_MODELS", "qwen-coder-pro").split(",")
+QWEN_MODELS = [model.strip() for model in QWEN_MODELS if model.strip()]
+
+# Mistral models - supports native API authentication
+MISTRAL_MODELS = os.getenv("MISTRAL_MODELS", "mistral-large-latest,mistral-medium-latest,codestral-latest").split(",")
+MISTRAL_MODELS = [model.strip() for model in MISTRAL_MODELS if model.strip()]
+
+# OpenRouter models - supports API key authentication
+OPENROUTER_MODELS = os.getenv(
+    "OPENROUTER_MODELS",
+    "deepseek/deepseek-chat-v3.1:free,openai/gpt-oss-120b:free,z-ai/glm-4.5-air:free,moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,moonshotai/kimi-dev-72b:free",
+).split(",")
+OPENROUTER_MODELS = [model.strip() for model in OPENROUTER_MODELS if model.strip()]
+
+# Provider-specific authentication methods
+# Define which authentication method to use for each provider
+GEMINI_AUTH_METHOD = os.getenv("GEMINI_AUTH_METHOD", "api_key")  # "api_key" or "oauth2"
+QWEN_AUTH_METHOD = os.getenv("QWEN_AUTH_METHOD", "oauth2")  # "oauth2" (only option for now)
+MISTRAL_AUTH_METHOD = os.getenv("MISTRAL_AUTH_METHOD", "api_key")  # "api_key" (only option for now)
+
 # Each provider (gemini.py, openai_provider.py, xai.py) defines its own SUPPORTED_MODELS
 # with detailed descriptions. Tools use ModelProviderRegistry.get_available_model_names()
 # to get models only from enabled providers (those with valid API keys).
