@@ -39,7 +39,7 @@ GEMINI_MODELS = os.getenv("GEMINI_MODELS", "gemini-2.5-flash").split(",")
 GEMINI_MODELS = [model.strip() for model in GEMINI_MODELS if model.strip()]
 
 # Qwen models - supports OAuth2 authentication
-QWEN_MODELS = os.getenv("QWEN_MODELS", "qwen-coder-pro").split(",")
+QWEN_MODELS = os.getenv("QWEN_MODELS", "qwen3-coder-plus").split(",")
 QWEN_MODELS = [model.strip() for model in QWEN_MODELS if model.strip()]
 
 # Mistral models - supports native API authentication
